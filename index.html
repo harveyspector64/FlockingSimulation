@@ -33,6 +33,8 @@
       radius: 50,
     };
 
+    let score = 0;
+
     // Initialize sheep
     for (let i = 0; i < numSheep; i++) {
       sheep.push({
@@ -40,6 +42,7 @@
         y: Math.random() * canvas.height,
         vx: Math.random() * 2 - 1,
         vy: Math.random() * 2 - 1,
+        herded: false,
       });
     }
 
@@ -82,13 +85,15 @@
           sheep.vy -= dy / distance * sheepSpeed;
         }
 
-        // Move towards target
-        const targetDx = target.x - sheep.x;
-        const targetDy = target.y - sheep.y;
-        const targetDistance = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
+        // Move towards target if herded
+        if (sheep.herded) {
+          const targetDx = target.x - sheep.x;
+          const targetDy = target.y - sheep.y;
+          const targetDistance = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
 
-        sheep.vx += targetDx / targetDistance * sheepSpeed * 0.1;
-        sheep.vy += targetDy / targetDistance * sheepSpeed * 0.1;
+          sheep.vx += targetDx / targetDistance * sheepSpeed * 0.2;
+          sheep.vy += targetDy / targetDistance * sheepSpeed * 0.2;
+        }
 
         // Limit sheep speed
         const speed = Math.sqrt(sheep.vx * sheep.vx + sheep.vy * sheep.vy);
@@ -101,8 +106,18 @@
         sheep.x += sheep.vx;
         sheep.y += sheep.vy;
 
+        // Check if sheep is inside the target area
+        const targetDx = target.x - sheep.x;
+        const targetDy = target.y - sheep.y;
+        const targetDistance = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
+
+        if (targetDistance < target.radius && !sheep.herded) {
+          sheep.herded = true;
+          score++;
+        }
+
         // Draw sheep
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = sheep.herded ? 'rgba(0, 255, 0, 0.7)' : 'white';
         ctx.beginPath();
         ctx.arc(sheep.x, sheep.y, sheepRadius, 0, Math.PI * 2);
         ctx.fill();
@@ -113,6 +128,18 @@
       ctx.beginPath();
       ctx.arc(sheepdog.x, sheepdog.y, sheepdog.radius, 0, Math.PI * 2);
       ctx.fill();
+
+      // Draw score
+      ctx.fillStyle = 'black';
+      ctx.font = '24px Arial';
+      ctx.fillText('Score: ' + score, 10, 30);
+
+      // Check if all sheep are herded
+      if (score === numSheep) {
+        ctx.fillStyle = 'black';
+        ctx.font = '48px Arial';
+        ctx.fillText('Congratulations!', canvas.width / 2 - 150, canvas.height / 2);
+      }
 
       // Call update function again
       requestAnimationFrame(update);
