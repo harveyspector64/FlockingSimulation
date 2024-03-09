@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flocking Simulation</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const numBoids = 100;
+        const boids = [];
+
+        class Boid {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.velocityX = Math.random() * 2 - 1;
+                this.velocityY = Math.random() * 2 - 1;
+            }
+
+            update() {
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+
+                if (this.x < 0 || this.x > canvas.width) {
+                    this.velocityX *= -1;
+                }
+                if (this.y < 0 || this.y > canvas.height) {
+                    this.velocityY *= -1;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = 'blue';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            for (let i = 0; i < numBoids; i++) {
+                boids.push(new Boid());
+            }
+        }
+
+        function update() {
+            for (let i = 0; i < numBoids; i++) {
+                boids[i].update();
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < numBoids; i++) {
+                boids[i].draw();
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        init();
+        gameLoop();
+    </script>
+</body>
+</html>
