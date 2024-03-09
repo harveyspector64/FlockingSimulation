@@ -1,78 +1,132 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Flocking Simulation</title>
-    <style>
-        canvas {
-            border: 1px solid black;
-        }
-    </style>
+  <title>Sheepdog Herding</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
 </head>
 <body>
-    <canvas id="canvas" width="800" height="600"></canvas>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-        const numBoids = 100;
-        const boids = [];
+    const sheepdog = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      speed: 3,
+      radius: 15,
+    };
 
-        class Boid {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.velocityX = Math.random() * 2 - 1;
-                this.velocityY = Math.random() * 2 - 1;
-            }
+    const sheep = [];
+    const numSheep = 20;
+    const sheepRadius = 10;
+    const sheepSpeed = 1;
 
-            update() {
-                this.x += this.velocityX;
-                this.y += this.velocityY;
+    const target = {
+      x: canvas.width - 100,
+      y: canvas.height / 2,
+      radius: 50,
+    };
 
-                if (this.x < 0 || this.x > canvas.width) {
-                    this.velocityX *= -1;
-                }
-                if (this.y < 0 || this.y > canvas.height) {
-                    this.velocityY *= -1;
-                }
-            }
+    // Initialize sheep
+    for (let i = 0; i < numSheep; i++) {
+      sheep.push({
+        x: Math.random() * (canvas.width / 2),
+        y: Math.random() * canvas.height,
+        vx: Math.random() * 2 - 1,
+        vy: Math.random() * 2 - 1,
+      });
+    }
 
-            draw() {
-                ctx.fillStyle = 'blue';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
-                ctx.fill();
-            }
+    // Update function
+    function update() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw target
+      ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+      ctx.beginPath();
+      ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Update sheepdog position based on mouse
+      const mouseX = sheepdog.x;
+      const mouseY = sheepdog.y;
+
+      const dx = mouseX - sheepdog.x;
+      const dy = mouseY - sheepdog.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > sheepdog.speed) {
+        sheepdog.x += (dx / distance) * sheepdog.speed;
+        sheepdog.y += (dy / distance) * sheepdog.speed;
+      }
+
+      // Update sheep positions
+      for (let i = 0; i < numSheep; i++) {
+        const sheep = sheep[i];
+
+        // Calculate distance to sheepdog
+        const dx = sheepdog.x - sheep.x;
+        const dy = sheepdog.y - sheep.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Flee from sheepdog if too close
+        if (distance < 50) {
+          sheep.vx -= dx / distance * sheepSpeed;
+          sheep.vy -= dy / distance * sheepSpeed;
         }
 
-        function init() {
-            for (let i = 0; i < numBoids; i++) {
-                boids.push(new Boid());
-            }
+        // Move towards target
+        const targetDx = target.x - sheep.x;
+        const targetDy = target.y - sheep.y;
+        const targetDistance = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
+
+        sheep.vx += targetDx / targetDistance * sheepSpeed * 0.1;
+        sheep.vy += targetDy / targetDistance * sheepSpeed * 0.1;
+
+        // Limit sheep speed
+        const speed = Math.sqrt(sheep.vx * sheep.vx + sheep.vy * sheep.vy);
+        if (speed > sheepSpeed) {
+          sheep.vx = (sheep.vx / speed) * sheepSpeed;
+          sheep.vy = (sheep.vy / speed) * sheepSpeed;
         }
 
-        function update() {
-            for (let i = 0; i < numBoids; i++) {
-                boids[i].update();
-            }
-        }
+        // Update sheep position
+        sheep.x += sheep.vx;
+        sheep.y += sheep.vy;
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < numBoids; i++) {
-                boids[i].draw();
-            }
-        }
+        // Draw sheep
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(sheep.x, sheep.y, sheepRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
+      // Draw sheepdog
+      ctx.fillStyle = 'brown';
+      ctx.beginPath();
+      ctx.arc(sheepdog.x, sheepdog.y, sheepdog.radius, 0, Math.PI * 2);
+      ctx.fill();
 
-        init();
-        gameLoop();
-    </script>
+      // Call update function again
+      requestAnimationFrame(update);
+    }
+
+    // Event listener for mouse movement
+    canvas.addEventListener('mousemove', (event) => {
+      const rect = canvas.getBoundingClientRect();
+      sheepdog.x = event.clientX - rect.left;
+      sheepdog.y = event.clientY - rect.top;
+    });
+
+    // Start the game
+    update();
+  </script>
 </body>
 </html>
