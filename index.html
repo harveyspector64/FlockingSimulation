@@ -29,6 +29,7 @@
         this.health = 100;
         this.hunger = 0;
         this.age = 0;
+        this.speed = 1;
       }
 
       draw() {
@@ -44,6 +45,13 @@
         if (this.hunger > 50) {
           this.health -= 0.1;
         }
+        this.move();
+      }
+
+      move() {
+        const angle = Math.random() * Math.PI * 2;
+        this.x += Math.cos(angle) * this.speed;
+        this.y += Math.sin(angle) * this.speed;
       }
 
       displayInfo() {
@@ -58,19 +66,22 @@
 
     class Rabbit extends Entity {
       constructor(x, y) {
-        super(x, y, 'white');
+        super(x, y, 'lightgreen');
+        this.speed = 2;
       }
     }
 
     class Wolf extends Entity {
       constructor(x, y) {
         super(x, y, 'gray');
+        this.speed = 1.5;
       }
     }
 
     class Carrot extends Entity {
       constructor(x, y) {
         super(x, y, 'orange');
+        this.speed = 0;
       }
     }
 
